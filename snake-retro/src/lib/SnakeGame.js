@@ -15,10 +15,11 @@ export default class SnakeGame {
     this.tweenTimeStep = 250;
     this.lastPressedKey = 'w';
 
+    this.score = 3;
     // NOTE: 'boardGroup' is a wrapper for the board tiles.
     // NOTE: It is helpful to use a groups to keep track of common structures.
     // NOTE: E.g. This group makes it easy to reset the board + change its scale.
-    // TODO: Remove board? I don't use it in the app.
+
     this.boardGroup = new THREE.Group();
 
     // NOTE: 'snakeGroup' contains all the snake parts.
@@ -37,6 +38,8 @@ export default class SnakeGame {
     this.resetBoard();
     this.resetSnake();
     this.resetSnack();
+    setTimeout(()=>alert("遊戲說明:\n------------------------------\n使用WASD來操作貪吃蛇\n空白鍵來暫停遊戲\n------------------------------\n\n備註:\n初始貪吃蛇長度為3\n將隨著吃到越多獎勵而逐漸變長!"),100);
+
   }
 
   loop(t) {
@@ -120,23 +123,23 @@ export default class SnakeGame {
       this.animateSnakeMovement(oldCoords, newCoords);
     }
 
-    // Check if x, y coordinates of head of snake are super close to
-    // the snack's coordinates. If so, then the snack should be reset.
-    // TODO: Extend snake length.
-
     const snack = this.snackGroup.children[0];
+    // 如果蛇&獎勵碰到 則得分 並蛇變長+1 重設獎勵位置
     if (
       this.almostEqual(newCoords.x, snack.position.x) &&
       this.almostEqual(newCoords.y, snack.position.y)
     ) {
       this.resetSnack();
       this.extendSnake(lastSnakePartCoords);
+      alert('吃到獎勵了! 目前貪吃蛇長度增加為:' + ++this.score);
     }
   }
 
   extendSnake(lastSnakePartCoords) {
     const snakePartGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const snakePartMaterial = new THREE.MeshNormalMaterial();
+    const snakePartMaterial = new THREE.MeshLambertMaterial({
+      color: 0xff00,
+    });
     const snakePart = new THREE.Mesh(snakePartGeometry, snakePartMaterial);
 
     snakePart.position.x = lastSnakePartCoords.x;
@@ -166,6 +169,7 @@ export default class SnakeGame {
     });
   }
 
+  // 創造貪吃蛇獎勵
   resetSnack() {
     this.clearSnackGroup();
 
@@ -179,13 +183,16 @@ export default class SnakeGame {
       });
     });
 
+    // 隨機製造下一個獎勵位置
     let snackXY = this.getRandomXY();
     while (this.snakePartsOnSnack(snakePartsXY, snackXY)) {
       snackXY = this.getRandomXY();
     }
 
     const geometry = new THREE.SphereGeometry(0.5);
-    const material = new THREE.MeshNormalMaterial();
+    const material = new THREE.MeshLambertMaterial({
+      color: 0xff0000,
+    });
     const snack = new THREE.Mesh(geometry, material);
     snack.position.x = snackXY.x;
     snack.position.y = snackXY.y;
@@ -195,28 +202,44 @@ export default class SnakeGame {
 
   resetSnake() {
     this.clearSnakeGroup();
-
+    // 創造貪吃蛇
     for (let i = 0; i < this.snakeStarterLength; i++) {
       const snakePartGeometry = new THREE.BoxGeometry(1, 1, 1);
-      const snakePartMaterial = new THREE.MeshNormalMaterial();
-      const snakePart = new THREE.Mesh(snakePartGeometry, snakePartMaterial);
+      const textLoader = new THREE.TextureLoader();
+      const textureHead = textLoader.load(
+        '../../assets/crt_monitor/textures/snakehead.jpg'
+      );
+      if (i == 0) {
+        const snakePartMaterial = new THREE.MeshStandardMaterial({
+          map: textureHead,
+        });
+        const snakePart = new THREE.Mesh(snakePartGeometry, snakePartMaterial);
 
-      snakePart.position.x = this.snakeStarterLength / 2 - 0.5 - i;
-      snakePart.position.y = -0.5;
-      this.snakeGroup.add(snakePart);
+        snakePart.position.x = this.snakeStarterLength / 2 - 0.5 - i;
+        snakePart.position.y = -0.5;
+        this.snakeGroup.add(snakePart);
+      } else {
+        const snakePartMaterial = new THREE.MeshLambertMaterial({
+          color: 0xff00,
+        });
+        const snakePart = new THREE.Mesh(snakePartGeometry, snakePartMaterial);
+
+        snakePart.position.x = this.snakeStarterLength / 2 - 0.5 - i;
+        snakePart.position.y = -0.5;
+        this.snakeGroup.add(snakePart);
+      }
     }
   }
 
   resetBoard() {
     this.clearBoardGroup();
-
+    // 創造背後的網格
     for (let i = 0; i < this.boardSize; i++) {
       for (let j = 0; j < this.boardSize; j++) {
         const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshNormalMaterial({ wireframe: true });
         const boardTile = new THREE.Mesh(geometry, material);
 
-        // NOTE: Position the board tiles in the center of the screen.
         boardTile.position.x = i - this.boardSize / 2 + 0.5;
         boardTile.position.y = j - this.boardSize / 2 + 0.5;
         this.boardGroup.add(boardTile);

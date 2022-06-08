@@ -37,7 +37,7 @@ export default class SceneInit {
       1,
       1000
     );
-    this.camera.position.z = 96;
+    this.camera.position.z = 100;
 
     // specify a canvas which is already created in the HTML file and tagged by an id
     // aliasing enabled
@@ -56,7 +56,7 @@ export default class SceneInit {
     document.body.appendChild(this.stats.dom);
 
     // ambient light which is for the whole scene
-    let ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    let ambientLight = new THREE.AmbientLight(0xffffff, 1);
     ambientLight.castShadow = true;
     this.scene.add(ambientLight);
 
@@ -67,11 +67,16 @@ export default class SceneInit {
     this.scene.add(spotLight);
 
     const loader = new GLTFLoader();
-    loader.load('./assets/crt_monitor/scene.gltf', (gltf) => {
-      gltf.scene.scale.set(0.25, 0.25, 0.25);
-      gltf.scene.rotation.y = -Math.PI / 2;
-      gltf.scene.position.y = 5;
-      gltf.scene.position.z = -8;
+    loader.load('./assets/joust_console/scene.gltf', (gltf) => {
+      // gltf.scene.scale.set(0.25, 0.25, 0.25);
+      // gltf.scene.rotation.y = -Math.PI / 2;
+      // gltf.scene.position.y = 5;
+      // gltf.scene.position.z = -15;
+      gltf.scene.scale.set(100,100,100);
+      gltf.scene.rotation.y = -0.47;
+      gltf.scene.position.y = -115;
+      gltf.scene.rotation.x = 0.07;
+      gltf.scene.position.z = -24.6;
       this.scene.add(gltf.scene);
     });
 
@@ -88,14 +93,18 @@ export default class SceneInit {
     this.rtScene = new THREE.Scene();
     this.renderTarget = new THREE.WebGLRenderTarget(rtWidth, rtHeight);
     this.rtCamera = new THREE.PerspectiveCamera(rtFov, rtAspect, rtNear, rtFar);
-    this.rtCamera.position.z = 36;
+    this.rtCamera.position.z = 50;
 
     const color = 0xffffff;
     const intensity = 1;
     const light = new THREE.DirectionalLight(color, intensity);
     light.position.set(0, 0, 200);
     this.rtScene.add(light);
-    this.rtScene.background = new THREE.Color(0xfafafa);
+    const textLoader = new THREE.TextureLoader();
+    const textureBG = textLoader.load(
+      '../../assets/crt_monitor/textures/background.jpg'
+    );
+    this.rtScene.background = textureBG;
 
     const planeGeometry = new THREE.PlaneGeometry(32, 32, 32, 32);
     const planeMaterial = new THREE.ShaderMaterial({
